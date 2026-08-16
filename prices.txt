@@ -18,7 +18,7 @@
 Flagship | Apple | iPhone 16 Pro Max | 1199
 Flagship | Apple | iPhone 16 Pro | 999
 Flagship | Samsung | Galaxy S25 Ultra | 1299
-Flagship | Samsung | Galaxy S25 | 899
+Flagship | Samsung | Galaxy S25 | 100
 Flagship | Google | Pixel 9 Pro | 999
 
 Mid-Range | Apple | iPhone 16e | 599
