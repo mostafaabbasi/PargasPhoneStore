@@ -1,0 +1,40 @@
+# Phone Store Price List
+# ------------------------------------------------------------
+# HOW TO EDIT: change the numbers/text below, save, then commit
+# the file on GitHub (or edit it directly on github.com — click
+# this file, click the pencil icon, edit, "Commit changes").
+# The website reads this file automatically — no other file
+# needs to change.
+#
+# FORMAT (one phone per line):
+#   Category | Brand | Model | Price
+#
+# - Lines starting with # are notes and are ignored.
+# - Blank lines are ignored.
+# - Price is just a number (no currency symbol, no commas).
+# - Category is a free label you choose (Flagship, Budget, etc).
+# ------------------------------------------------------------
+
+Flagship | Apple | iPhone 16 Pro Max | 1199
+Flagship | Apple | iPhone 16 Pro | 999
+Flagship | Samsung | Galaxy S25 Ultra | 1299
+Flagship | Samsung | Galaxy S25 | 899
+Flagship | Google | Pixel 9 Pro | 999
+
+Mid-Range | Apple | iPhone 16e | 599
+Mid-Range | Samsung | Galaxy A56 | 449
+Mid-Range | Google | Pixel 9a | 499
+Mid-Range | Xiaomi | Redmi Note 14 Pro | 379
+Mid-Range | OnePlus | Nord 4 | 429
+
+Budget | Samsung | Galaxy A16 | 199
+Budget | Xiaomi | Redmi 14C | 149
+Budget | Realme | C63 | 159
+Budget | Nokia | G22 | 179
+
+Foldable | Samsung | Galaxy Z Fold 6 | 1899
+Foldable | Google | Pixel 9 Pro Fold | 1799
+Foldable | Motorola | Razr 50 Ultra | 999
+
+Gaming | ASUS | ROG Phone 9 | 1099
+Gaming | RedMagic | RedMagic 10 Pro | 749

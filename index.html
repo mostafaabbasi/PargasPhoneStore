@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone Store — Price List</title>
+<meta name="description" content="Current phone prices by category and brand.">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel-2:#1e222b;
+    --border:#2a2f3a;
+    --text:#e9edf3;
+    --text-dim:#9aa3b2;
+    --accent:#4f8cff;
+    --accent-2:#7c5cff;
+    --good:#3ecf8e;
+    --radius:14px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(79,140,255,.15), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(124,92,255,.12), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  header{
+    text-align:center;
+    margin:10px 0 24px;
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:1.7rem;
+    letter-spacing:-0.02em;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:.92rem;
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px;
+    margin-bottom:18px;
+    position:sticky;
+    top:10px;
+    z-index:5;
+    backdrop-filter:blur(8px);
+  }
+  .controls input[type=search],
+  .controls select{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:.95rem;
+    outline:none;
+  }
+  .controls input[type=search]{flex:1 1 160px;min-width:120px;}
+  .controls select{flex:1 1 130px;}
+  .controls input:focus,.controls select:focus{border-color:var(--accent);}
+
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:var(--text-dim);
+    font-size:.82rem;
+    margin:0 2px 14px;
+  }
+  #status{color:var(--text-dim);}
+  #status.error{color:#ff6b6b;}
+
+  .category{
+    margin-bottom:22px;
+  }
+  .category h2{
+    font-size:1.02rem;
+    margin:0 0 10px 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text);
+  }
+  .category h2 .count{
+    font-weight:400;
+    color:var(--text-dim);
+    font-size:.8rem;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:10px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .card:hover{transform:translateY(-2px);border-color:#3a4152;}
+  .card .brand{
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-dim);
+  }
+  .card .model{
+    font-size:1rem;
+    font-weight:600;
+    line-height:1.3;
+  }
+  .card .price{
+    margin-top:auto;
+    padding-top:8px;
+    font-size:1.25rem;
+    font-weight:700;
+    color:var(--good);
+  }
+
+  .empty{
+    text-align:center;
+    color:var(--text-dim);
+    padding:40px 10px;
+    display:none;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:.78rem;
+    margin-top:30px;
+  }
+  footer a{color:var(--accent);}
+
+  @media (max-width:480px){
+    header h1{font-size:1.4rem;}
+    .controls{position:static;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📱 Phone Store</h1>
+    <p>Current prices by category &amp; brand — updated from a single price list</p>
+  </header>
+
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search model or brand…" autocomplete="off">
+    <select id="categoryFilter"><option value="">All categories</option></select>
+    <select id="brandFilter"><option value="">All brands</option></select>
+    <select id="sortBy">
+      <option value="default">Sort: default</option>
+      <option value="price-asc">Price: low → high</option>
+      <option value="price-desc">Price: high → low</option>
+      <option value="name-asc">Name: A → Z</option>
+    </select>
+  </div>
+
+  <div class="meta-row">
+    <span id="status">Loading prices…</span>
+    <span id="count"></span>
+  </div>
+
+  <div id="content"></div>
+  <div class="empty" id="empty">No phones match your filters.</div>
+
+  <footer>
+    Prices come from <code>prices.txt</code> in this repo — edit that file to update the site.
+  </footer>
+</div>
+
+<script>
+(function(){
+  const CURRENCY = "$"; // change to "€", "£", "﷼", etc. if you prefer
+
+  const statusEl = document.getElementById('status');
+  const countEl = document.getElementById('count');
+  const contentEl = document.getElementById('content');
+  const emptyEl = document.getElementById('empty');
+  const searchEl = document.getElementById('search');
+  const categoryEl = document.getElementById('categoryFilter');
+  const brandEl = document.getElementById('brandFilter');
+  const sortEl = document.getElementById('sortBy');
+
+  let phones = [];
+
+  function parsePriceFile(text){
+    const lines = text.split(/\r?\n/);
+    const out = [];
+    for(const raw of lines){
+      const line = raw.trim();
+      if(!line || line.startsWith('#')) continue;
+      const parts = line.split('|').map(p => p.trim());
+      if(parts.length < 4) continue;
+      const [category, brand, model, priceRaw] = parts;
+      const price = parseFloat(priceRaw.replace(/[^0-9.]/g, ''));
+      if(!category || !brand || !model || isNaN(price)) continue;
+      out.push({category, brand, model, price});
+    }
+    return out;
+  }
+
+  function uniqueSorted(values){
+    return Array.from(new Set(values)).sort((a,b) => a.localeCompare(b));
+  }
+
+  function populateFilters(data){
+    const cats = uniqueSorted(data.map(p => p.category));
+    const brands = uniqueSorted(data.map(p => p.brand));
+    for(const c of cats){
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      categoryEl.appendChild(o);
+    }
+    for(const b of brands){
+      const o = document.createElement('option');
+      o.value = b; o.textContent = b;
+      brandEl.appendChild(o);
+    }
+  }
+
+  function render(){
+    const q = searchEl.value.trim().toLowerCase();
+    const cat = categoryEl.value;
+    const brand = brandEl.value;
+    const sort = sortEl.value;
+
+    let filtered = phones.filter(p => {
+      if(cat && p.category !== cat) return false;
+      if(brand && p.brand !== brand) return false;
+      if(q && !(p.model.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q))) return false;
+      return true;
+    });
+
+    countEl.textContent = filtered.length + ' phone' + (filtered.length === 1 ? '' : 's');
+
+    contentEl.innerHTML = '';
+    if(filtered.length === 0){
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    // group by category, preserving first-seen order (unless flat sort requested)
+    const groupOrder = [];
+    const groups = {};
+    for(const p of filtered){
+      if(!groups[p.category]){ groups[p.category] = []; groupOrder.push(p.category); }
+      groups[p.category].push(p);
+    }
+
+    const sorter = {
+      'price-asc': (a,b) => a.price - b.price,
+      'price-desc': (a,b) => b.price - a.price,
+      'name-asc': (a,b) => (a.brand + a.model).localeCompare(b.brand + b.model),
+      'default': null
+    }[sort];
+
+    for(const catName of groupOrder){
+      const items = groups[catName];
+      if(sorter) items.sort(sorter);
+
+      const section = document.createElement('div');
+      section.className = 'category';
+
+      const h2 = document.createElement('h2');
+      h2.innerHTML = escapeHtml(catName) + ' <span class="count">(' + items.length + ')</span>';
+      section.appendChild(h2);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      for(const p of items){
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML =
+          '<div class="brand">' + escapeHtml(p.brand) + '</div>' +
+          '<div class="model">' + escapeHtml(p.model) + '</div>' +
+          '<div class="price">' + CURRENCY + p.price.toLocaleString() + '</div>';
+        grid.appendChild(card);
+      }
+      section.appendChild(grid);
+      contentEl.appendChild(section);
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[ch]));
+  }
+
+  fetch('prices.txt', {cache: 'no-store'})
+    .then(res => {
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(text => {
+      phones = parsePriceFile(text);
+      if(phones.length === 0){
+        statusEl.textContent = 'prices.txt loaded but no valid rows were found — check the format.';
+        statusEl.classList.add('error');
+        return;
+      }
+      statusEl.textContent = 'Prices loaded from prices.txt';
+      populateFilters(phones);
+      render();
+    })
+    .catch(err => {
+      statusEl.textContent = 'Could not load prices.txt (' + err.message + '). If you just opened this file locally, open it through GitHub Pages instead — browsers block local file loading.';
+      statusEl.classList.add('error');
+    });
+
+  [searchEl, categoryEl, brandEl, sortEl].forEach(el => {
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+})();
+</script>
+</body>
+</html>
